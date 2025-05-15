@@ -17,7 +17,7 @@ export default function Login() {
   const { username, password ,confirmPassword,email} = userInfo || {};
   const navigate = useNavigate();
   useEffect(()=>{
-    if(localStorage.getItem("userInfo")){
+    if(localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)){
       navigate("/")
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -52,7 +52,7 @@ export default function Login() {
         if (code === SUCCESS_CODE) {
             navigate("/");
 
-          localStorage.setItem("userInfo",JSON.stringify(res.data?.user));
+          localStorage.setItem(process.env.USER_INFO,JSON.stringify(res.data?.user));
         } else {
           toast.error(message)
         }
