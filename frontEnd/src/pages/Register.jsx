@@ -1,12 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
-import { useMutation } from "@tanstack/react-query";
-import { ToastContainer, toast } from "react-toastify";
-import axios from "axios";
+import {  toast } from "react-toastify";
 
-import { SUCCESS_CODE } from "../constants";
-import { registerApi } from "../service/apis";
 import { useRegisterMutation } from "../mutations";
 
 export default function Login() {
@@ -61,7 +57,6 @@ export default function Login() {
 
   return (
     <>
-      <ToastContainer />
       <FormContainer>
         <div className="box">
           <header>

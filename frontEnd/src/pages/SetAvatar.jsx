@@ -3,7 +3,7 @@ import styled from "styled-components";
 import axios from "axios";
 import { Buffer } from "buffer";
 import loader from "../assets/loader.gif";
-import { ToastContainer, toast } from "react-toastify";
+import {  toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { setAvatarApi } from "../service/apis";
@@ -52,7 +52,6 @@ export default function SetAvatar() {
 
   return (
     <>
-      <ToastContainer />
       {isLoading ? (
         <Container>
           <img src={loader} alt="loader" className="loader" />
@@ -83,7 +82,6 @@ export default function SetAvatar() {
           <button className="submit-btn" onClick={setProfileImg}>
             Set as Profile Picture
           </button>
-          <ToastContainer />
         </Container>
       )}
     </>
