@@ -1,81 +1,73 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
+import { useMutation } from "@tanstack/react-query";
+import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-import { ToastContainer, toast } from 'react-toastify';
 
 import { SUCCESS_CODE } from "../constants";
-import {  registerApi } from "../service/apis";
+import { registerApi } from "../service/apis";
+import { useRegisterMutation } from "../mutations";
 
 export default function Login() {
   const [userInfo, setUserInfo] = useState({
     username: "",
     password: "",
-    confirmPassword:"",
-    email:""
+    confirmPassword: "",
+    email: "",
   });
-  const { username, password ,confirmPassword,email} = userInfo || {};
+  const { username, password, confirmPassword, email } = userInfo || {};
   const navigate = useNavigate();
-  useEffect(()=>{
-    if(localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)){
-      navigate("/")
+  useEffect(() => {
+    if (localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)) {
+      navigate("/");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
-  const handleValidation=useCallback(()=>{
-    if(password!==confirmPassword){
-      toast.error("Passwords do not match")
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const handleValidation = useCallback(() => {
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
       return false;
-    }else    if(username.trim().length<3){
-      toast.error("Username should be at least 3 characters long")
+    } else if (username.trim().length < 3) {
+      toast.error("Username should be at least 3 characters long");
       return false;
-    }else    if(password.trim().length<6){
-      toast.error("Password should be at least 6 characters long")
+    } else if (password.trim().length < 6) {
+      toast.error("Password should be at least 6 characters long");
       return false;
-    }else if(!email){
+    } else if (!email) {
       toast.error("Email is required");
       return false;
     }
-    return true
-  },[password,confirmPassword,username,email])
+    return true;
+  }, [password, confirmPassword, username, email]);
 
+  const registerMutation = useRegisterMutation();
   const handleSubmit = useCallback(() => {
-    if(handleValidation()){
-    axios
-      .post(registerApi, {
+    if (handleValidation()) {
+      registerMutation.mutate({
         username,
         password,
-        email
-      })
-      .then((res) => {
-        const { code, message } = res.data || {};
-        if (code === SUCCESS_CODE) {
-            navigate("/");
-
-          localStorage.setItem(process.env.USER_INFO,JSON.stringify(res.data?.user));
-        } else {
-          toast.error(message)
-        }
+        email,
       });
     }
-  }, [handleValidation, username, password, navigate,email]);
- 
+  }, [email, handleValidation, password, registerMutation, username]);
+
   const handleChangeInput = (e) => {
     setUserInfo({
-        ...userInfo,
-        [e.target.name]: e.target.value,
-      });
+      ...userInfo,
+      [e.target.name]: e.target.value,
+    });
   };
 
   return (
     <>
-     <ToastContainer />
-    <FormContainer>
-      <div className="box">
-        <header>
-          <img src="/assets/logo.svg" alt="Logo" />
-          <span>SNAPPY</span>
-        </header>
+      <ToastContainer />
+      <FormContainer>
+        <div className="box">
+          <header>
+            <img src="/assets/logo.svg" alt="Logo" />
+            <span>SNAPPY</span>
+          </header>
           <input
             type="text"
             placeholder="User Name"
@@ -90,26 +82,28 @@ export default function Login() {
             onChange={handleChangeInput}
             value={password}
           />
-           <input
+          <input
             type="password"
             placeholder="Confirm Password"
             name="confirmPassword"
             onChange={handleChangeInput}
             value={confirmPassword}
           />
-           <input
+          <input
             type="email"
             placeholder="Email"
             name="email"
             onChange={handleChangeInput}
             value={email}
           />
-          <button type="submit" onClick={handleSubmit}>REGISTER</button>
+          <button type="submit" onClick={handleSubmit}>
+            REGISTER
+          </button>
           <span>
-           already have an account? <Link to="/login"> Login</Link>
+            already have an account? <Link to="/login"> Login</Link>
           </span>
-      </div>
-    </FormContainer>
+        </div>
+      </FormContainer>
     </>
   );
 }
@@ -120,14 +114,14 @@ export const FormContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction:column;
-  color:#fff;
+  flex-direction: column;
+  color: #fff;
   .box {
     background: #0a0a13;
     color: #fff;
     display: flex;
     flex-direction: column;
-gap:1rem;
+    gap: 1rem;
     padding: 3rem 5rem;
     border-radius: 2rem;
   }
@@ -136,14 +130,14 @@ gap:1rem;
     justify-content: center;
     align-items: center;
     font-size: 20px;
-    gap:1rem;
+    gap: 1rem;
 
     img {
-    width: 2rem;
-    height: 2rem;
+      width: 2rem;
+      height: 2rem;
+    }
   }
-  }
-   
+
   input {
     border-radius: 0.4rem;
     padding: 0.5rem;
@@ -152,10 +146,10 @@ gap:1rem;
     outline: none;
     color: #fff;
     width: 100%;
-    font-size:1rem;
+    font-size: 1rem;
     box-sizing: border-box;
-    &:focus{
-      border-color:#997af0;
+    &:focus {
+      border-color: #997af0;
     }
   }
   button {
@@ -164,16 +158,14 @@ gap:1rem;
     background: #4e0eff;
     color: #fff;
     border: none;
-    padding:  1rem 2rem;
+    padding: 1rem 2rem;
     cursor: pointer;
   }
   a {
     color: #4e0eff;
     text-decoration: none;
   }
-    span{
+  span {
     text-transform: uppercase;
-    }
+  }
 `;
-
-
