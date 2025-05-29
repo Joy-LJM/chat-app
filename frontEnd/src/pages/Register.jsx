@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
-import {  toast } from "react-toastify";
 
 import { useRegisterMutation } from "../mutations";
 
@@ -20,39 +19,90 @@ export default function Login() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const handleValidation = useCallback(() => {
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return false;
-    } else if (username.trim().length < 3) {
-      toast.error("Username should be at least 3 characters long");
-      return false;
-    } else if (password.trim().length < 6) {
-      toast.error("Password should be at least 6 characters long");
-      return false;
-    } else if (!email) {
-      toast.error("Email is required");
-      return false;
-    }
-    return true;
-  }, [password, confirmPassword, username, email]);
+
+  // TODO: 可以考虑添加密码强度指示器
+
+  // TODO:可以优化错误消息的显示方式
 
   const registerMutation = useRegisterMutation();
   const handleSubmit = useCallback(() => {
-    if (handleValidation()) {
-      registerMutation.mutate({
-        username,
-        password,
-        email,
-      });
-    }
-  }, [email, handleValidation, password, registerMutation, username]);
-
-  const handleChangeInput = (e) => {
-    setUserInfo({
-      ...userInfo,
-      [e.target.name]: e.target.value,
+    registerMutation.mutate({
+      username,
+      password,
+      email,
     });
+  }, [email, password, registerMutation, username]);
+
+  // TODO :可以添加表单输入内容的实时验证
+  const handleChangeInput = useCallback(
+    (e) => {
+      setUserInfo({
+        ...userInfo,
+        [e.target.name]: e.target.value,
+      });
+    },
+    [userInfo]
+  );
+  const [formErr, setFormErr] = useState({
+    usernameErr: "",
+    passwordErr: "",
+    emailErr: "",
+    confirmPasswordErr: "",
+  });
+  // 防抖函数
+  const useDebounce = (callback, delay) => {
+    const timer = React.useRef();
+    
+    return (...args) => {
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    };
+  };
+
+  // 统一验证逻辑
+  const validateField = (name, value) => {
+    const validations = {
+      username: {
+        test: val => val.length >= 3,
+        message: "Username should be at least 3 characters long"
+      },
+      password: {
+        test: val => val.length >= 6,
+        message: "Password should be at least 6 characters long"
+      },
+      confirmPassword: {
+        test: val => val === password,
+        message: "Passwords do not match"
+      },
+      email: {
+        test: val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+        message: "Email is invalid"
+      }
+    };
+
+    if (!validations[name]) return;
+    
+    const isValid = validations[name].test(value);
+    setFormErr(prev => ({
+      ...prev,
+      [`${name}Err`]: isValid ? "" : validations[name].message
+    }));
+  };
+
+  // 防抖验证函数
+  const debouncedValidate = useDebounce((name, value) => {
+    validateField(name, value);
+  }, 300);
+
+  const handleFieldChange = (e) => {
+    const { name, value } = e.target;
+    handleChangeInput(e);
+    debouncedValidate(name, value);
+  };
+  const ErrorMsg = ({ children }) => {
+    return <div style={{ color: "red" }}>{children}</div>;
   };
 
   return (
@@ -67,32 +117,42 @@ export default function Login() {
             type="text"
             placeholder="User Name"
             name="username"
-            onChange={handleChangeInput}
+            onChange={handleFieldChange}
             value={username}
           />
+          {formErr.usernameErr && <ErrorMsg>{formErr.usernameErr}</ErrorMsg>}
           <input
             type="password"
             placeholder="Password"
             name="password"
-            onChange={handleChangeInput}
+            onChange={handleFieldChange}
             value={password}
           />
+          {formErr.passwordErr && <ErrorMsg>{formErr.passwordErr}</ErrorMsg>}
           <input
             type="password"
             placeholder="Confirm Password"
             name="confirmPassword"
-            onChange={handleChangeInput}
+            onChange={handleFieldChange}
             value={confirmPassword}
           />
+          {formErr.confirmPasswordErr && (
+            <ErrorMsg>{formErr.confirmPasswordErr}</ErrorMsg>
+          )}
           <input
             type="email"
             placeholder="Email"
             name="email"
-            onChange={handleChangeInput}
+            onChange={handleFieldChange}
             value={email}
           />
-          <button type="submit" onClick={handleSubmit}>
-            REGISTER
+          {formErr.emailErr && <ErrorMsg>{formErr.emailErr}</ErrorMsg>}
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={registerMutation.isPending}
+          >
+            {registerMutation.isPending ? "Processing..." : "REGISTER"}
           </button>
           <span>
             already have an account? <Link to="/login"> Login</Link>

@@ -5,7 +5,6 @@ export default function Chat() {
   const navigate=useNavigate();
   useEffect(()=>{
     if(!localStorage.getItem("userInfo")){
-      debugger
       navigate("/login");
     }
   },[navigate]);
